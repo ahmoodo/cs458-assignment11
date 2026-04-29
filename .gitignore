@@ -1,0 +1,56 @@
+# ============================================================
+# .NET / ASP.NET Core
+# ============================================================
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.swp
+*.DS_Store
+*.log
+*.nupkg
+*.snupkg
+*.msbuildproj.user
+launchSettings.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# EF Core migrations (keep them if you generate them, but ignore the snapshot build outputs)
+# Uncomment if you don't want to track migrations:
+# Migrations/
+
+# Publish output
+publish/
+
+# ============================================================
+# Node.js / Vite / React
+# ============================================================
+node_modules/
+dist/
+.cache/
+.parcel-cache/
+.vite/
+*.local
+
+# Dependency lock files (keep package-lock.json or yarn.lock)
+# .yarn/cache
+# .yarn/unplugged
+
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ============================================================
+# OS / editor
+# ============================================================
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.orig
