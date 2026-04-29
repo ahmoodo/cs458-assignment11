@@ -5,90 +5,83 @@ import InvoiceList from "./components/InvoiceList";
 import InvoiceForm from "./components/InvoiceForm";
 import "./App.css";
 
-// FIX: Use a relative base path "/api" instead of the hardcoded HTTPS URL
-// "https://localhost:7239/api". The Vite dev server proxies /api/* to the
-// ASP.NET Core backend (see vite.config.js), which avoids self-signed
-// certificate errors in the browser and keeps the URL portable.
-const API = "/api";
+// localStorage-based data store so the app works as a standalone demo
+// without a backend. All CRUD operations persist across page refreshes.
+
+function loadFromStorage(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveToStorage(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function nextId(items, idField) {
+  if (items.length === 0) return 1;
+  return Math.max(...items.map(i => i[idField])) + 1;
+}
 
 function App() {
-  const [workLogs, setWorkLogs] = useState([]);
-  const [invoices, setInvoices] = useState([]);
+  const [workLogs, setWorkLogs] = useState(() => loadFromStorage("workLogs"));
+  const [invoices, setInvoices] = useState(() => loadFromStorage("invoices"));
   const [editLog, setEditLog] = useState(null);
   const [editInvoice, setEditInvoice] = useState(null);
 
   useEffect(() => {
-    fetchWorkLogs();
-    fetchInvoices();
-  }, []);
+    saveToStorage("workLogs", workLogs);
+  }, [workLogs]);
 
-  function fetchWorkLogs() {
-    fetch(`${API}/worklogs`)
-      .then(res => res.json())
-      .then(data => setWorkLogs(data))
-      .catch(err => console.error("Error fetching work logs:", err));
-  }
-
-  function fetchInvoices() {
-    fetch(`${API}/invoices`)
-      .then(res => res.json())
-      .then(data => setInvoices(data))
-      .catch(err => console.error("Error fetching invoices:", err));
-  }
+  useEffect(() => {
+    saveToStorage("invoices", invoices);
+  }, [invoices]);
 
   function saveWorkLog(log) {
-    const method = log.logID === 0 ? "POST" : "PUT";
-    const url = log.logID === 0 ? `${API}/worklogs` : `${API}/worklogs/${log.logID}`;
-    fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(log)
-    })
-      .then(res => {
-        if (!res.ok) return res.text().then(t => { throw new Error(t); });
-        fetchWorkLogs();
-        setEditLog(null);
-      })
-      .catch(err => alert("Error saving work log: " + err.message));
+    if (log.logID === 0) {
+      const newLog = { ...log, logID: nextId(workLogs, "logID") };
+      setWorkLogs(prev => [...prev, newLog]);
+    } else {
+      setWorkLogs(prev => prev.map(l => l.logID === log.logID ? log : l));
+    }
+    setEditLog(null);
   }
 
   function deleteWorkLog(id) {
-    fetch(`${API}/worklogs/${id}`, { method: "DELETE" })
-      .then(res => {
-        if (!res.ok) throw new Error("Delete failed");
-        fetchWorkLogs();
-      })
-      .catch(err => alert("Error deleting work log: " + err.message));
+    if (window.confirm("Delete this log?")) {
+      setWorkLogs(prev => prev.filter(l => l.logID !== id));
+    }
   }
 
   function saveInvoice(invoice) {
-    const method = invoice.invoiceID === 0 ? "POST" : "PUT";
-    const url = invoice.invoiceID === 0 ? `${API}/invoices` : `${API}/invoices/${invoice.invoiceID}`;
-    fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(invoice)
-    })
-      .then(res => {
-        if (!res.ok) return res.text().then(t => { throw new Error(t); });
-        fetchInvoices();
-        setEditInvoice(null);
-      })
-      .catch(err => alert("Error saving invoice: " + err.message));
+    if (invoice.invoiceID === 0) {
+      const newInv = {
+        ...invoice,
+        invoiceID: nextId(invoices, "invoiceID"),
+        invoiceDate: new Date().toISOString()
+      };
+      setInvoices(prev => [...prev, newInv]);
+    } else {
+      setInvoices(prev => prev.map(i => i.invoiceID === invoice.invoiceID ? invoice : i));
+    }
+    setEditInvoice(null);
   }
 
   function deleteInvoice(id) {
-    fetch(`${API}/invoices/${id}`, { method: "DELETE" })
-      .then(res => {
-        if (!res.ok) throw new Error("Delete failed");
-        fetchInvoices();
-      })
-      .catch(err => alert("Error deleting invoice: " + err.message));
+    if (window.confirm("Delete this invoice?")) {
+      setInvoices(prev => prev.filter(i => i.invoiceID !== id));
+    }
   }
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>Maintenance Management</h1>
+      <p style={{ color: "#666", fontSize: "14px" }}>
+        Demo mode: data is stored in your browser. When connected to the ASP.NET Core API, replace the data layer in App.jsx with fetch calls.
+      </p>
       <hr />
       <WorkLogForm onSave={saveWorkLog} editData={editLog} onCancel={() => setEditLog(null)} />
       <WorkLogList workLogs={workLogs} onEdit={setEditLog} onDelete={deleteWorkLog} />

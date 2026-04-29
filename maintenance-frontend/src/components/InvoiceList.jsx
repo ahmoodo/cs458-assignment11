@@ -28,9 +28,7 @@ function InvoiceList({ invoices, onEdit, onDelete }) {
               <td>
                 <button onClick={() => onEdit(inv)}>Edit</button>
                 {" "}
-                <button onClick={() => {
-                  if (window.confirm("Delete this invoice?")) onDelete(inv.invoiceID);
-                }}>Delete</button>
+                <button onClick={() => onDelete(inv.invoiceID)}>Delete</button>
               </td>
             </tr>
           ))}

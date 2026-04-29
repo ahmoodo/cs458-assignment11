@@ -32,9 +32,7 @@ function WorkLogList({ workLogs, onEdit, onDelete }) {
               <td>
                 <button onClick={() => onEdit(log)}>Edit</button>
                 {" "}
-                <button onClick={() => {
-                  if (window.confirm("Delete this log?")) onDelete(log.logID);
-                }}>Delete</button>
+                <button onClick={() => onDelete(log.logID)}>Delete</button>
               </td>
             </tr>
           ))}

@@ -7,13 +7,12 @@ import react from "@vitejs/plugin-react";
 // which avoids browser HTTPS certificate errors for the self-signed dev cert.
 export default defineConfig({
   plugins: [react()],
+  base: "./",
   server: {
     proxy: {
       "/api": {
-        target: "https://localhost:7239",
+        target: "http://localhost:5050",
         changeOrigin: true,
-        // Allow the self-signed certificate the ASP.NET Core dev server uses.
-        secure: false,
       },
     },
   },
